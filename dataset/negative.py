@@ -7,7 +7,6 @@ from dataset.positive import random_move
 
 
 def random_walk(start: Knot, num_moves: int, rng: random.Random) -> Tuple[Knot, List[Move]]:
-    """Apply num_moves random Reidemeister moves to a single knot, independently."""
     current = start
     trace: List[Move] = []
     for _ in range(num_moves):
@@ -24,46 +23,28 @@ def generate_negative_pair(
     seed: int = None,
 ):
     """
-    Generate a negative (non-equivalent) pair. seed_a and seed_b MUST be
-    two knots already known to be genuinely different knot types (e.g.
-    two different named seeds from knot/seeds.py) — non-equivalence here
-    rests on that external fact, NOT on any invariant computed in this
-    codebase. Reidemeister moves never change knot type, so no move
-    sequence applied here can ever make the two equivalent, regardless
-    of how close their diagrams end up looking.
-
-    Runs `trials` independent attempts, each performing an independent
-    random walk of `num_moves` on each knot, and keeps whichever trial
-    minimizes the crossing-count difference between the two results.
-    This is a coarse, cheap closeness metric — matched crossing count
-    does NOT imply the diagrams look alike, only that they're similarly
-    complex. Good enough as a first version; can be swapped for a
-    richer structural metric later if needed.
-
-    Returns a dict with both knots' start/end states, move traces, and
-    the final crossing-count difference achieved.
+    seed_a and seed_b MUST already be known-distinct knot types.
+    Generates `trials` independent random-walk candidates for EACH knot
+    separately, then searches the full cross product of (candidate_a,
+    candidate_b) pairs to find the one minimizing crossing-count
+    difference. This is O(trials^2) comparisons but each is cheap.
     """
     rng = random.Random(seed)
+
+    candidates_a = [random_walk(seed_a, num_moves, rng) for _ in range(trials)]
+    candidates_b = [random_walk(seed_b, num_moves, rng) for _ in range(trials)]
+
     best = None
-
-    for _ in range(trials):
-        end_a, trace_a = random_walk(seed_a, num_moves, rng)
-        end_b, trace_b = random_walk(seed_b, num_moves, rng)
-        diff = abs(crossing_count(end_a) - crossing_count(end_b))
-
-        if best is None or diff < best['diff']:
-            best = {
-                'knot_a_start': seed_a,
-                'knot_a_end': end_a,
-                'moves_a': trace_a,
-                'knot_b_start': seed_b,
-                'knot_b_end': end_b,
-                'moves_b': trace_b,
-                'diff': diff,
-                'label': 'NOT_EQUIVALENT',
-            }
-
-        if best['diff'] == 0:
-            break  # can't do better than an exact crossing-count match
+    for end_a, trace_a in candidates_a:
+        for end_b, trace_b in candidates_b:
+            diff = abs(crossing_count(end_a) - crossing_count(end_b))
+            if best is None or diff < best['diff']:
+                best = {
+                    'knot_a_start': seed_a, 'knot_a_end': end_a, 'moves_a': trace_a,
+                    'knot_b_start': seed_b, 'knot_b_end': end_b, 'moves_b': trace_b,
+                    'diff': diff, 'label': 'NOT_EQUIVALENT',
+                }
+            if best['diff'] == 0:
+                return best  # can't do better; early exit from both loops
 
     return best
