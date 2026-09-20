@@ -65,3 +65,26 @@ def apply_r2_add(knot: Knot, i: int, j: int, sign_m: str = '+', order: str = 'OU
                + seq[second_gap + 1:])
     move = Move('R2', 'add', {'labels': (m, n_), 'positions': (i, j), 'sign': sign_m})
     return Knot.from_tokens(new_seq), move
+
+def apply_r2_add_local(knot: Knot, i: int, sign_m: str = '+', order: str = 'OU') -> Tuple[Knot, Move]:
+    """
+    Insert a local R2 'poke': both new crossings inserted together,
+    contiguously, at a single gap. Always planar-realizable, since the
+    new crossings can't interlace with anything outside the block.
+    This is a restricted, always-safe form of R2 — it doesn't cover
+    placing the two crossings far apart on different strands, which
+    needs planar face info we don't have yet (see knot/faces.py, TBD).
+    """
+    m = knot.next_label()
+    n_ = m + 1
+    sign_n = '-' if sign_m == '+' else '+'
+    tagA, tagB = order[0], order[1]
+    block = [
+        (m, tagA, sign_m), (n_, tagA, sign_n),
+        (n_, tagB, sign_n), (m, tagB, sign_m),
+    ]
+    seq = knot.seq
+    insert_at = (i + 1) % len(seq) if seq else 0
+    new_seq = seq[:insert_at] + block + seq[insert_at:]
+    move = Move('R2', 'add', {'labels': (m, n_), 'position': i, 'sign': sign_m, 'local': True})
+    return Knot.from_tokens(new_seq), move

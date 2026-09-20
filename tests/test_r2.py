@@ -1,7 +1,7 @@
 import pytest
 from knot.structure import Knot
-from moves.r2 import find_r2_removable, apply_r2_remove, apply_r2_add
-
+from moves.r2 import find_r2_removable, apply_r2_remove, apply_r2_add, apply_r2_add_local
+from knot.validator import passes_gauss_parity_check
 def trefoil():
     return Knot.from_tokens([
         (1, 'O', '+'), (2, 'O', '+'), (3, 'O', '+'),
@@ -76,3 +76,10 @@ def test_next_label_increments_after_add():
     m, n_ = move.params['labels']
     assert m == 4 and n_ == 5
     assert poked.next_label() == 6
+
+def test_local_r2_add_always_preserves_parity():
+    k = trefoil()
+    for _ in range(20):
+        for i in range(len(k)):
+            poked, _ = apply_r2_add_local(k, i, sign_m='+', order='OU')
+            assert passes_gauss_parity_check(poked), f"Failed at i={i}"
