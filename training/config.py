@@ -9,4 +9,5 @@ class TrainConfig:
     num_epochs: int = 20
     dataset_dir: str = "dataset/datasets"
     checkpoint_path: str = "experiments/results/checkpoint.pt"
+    resume_from: str = None
     seed: int = 0

@@ -61,3 +61,21 @@ def test_full_training_run_end_to_end(tmp_path):
 
     assert len(history) == 2
     assert os.path.exists(checkpoint_path)
+
+def test_resume_from_checkpoint_loads_weights(tmp_path):
+    dataset_dir = tmp_path / "datasets"
+    (dataset_dir / "train").mkdir(parents=True)
+    generate_dataset(15, str(dataset_dir / "train" / "train.jsonl"), seed=20)
+    generate_dataset(5, str(dataset_dir / "train" / "validation.jsonl"), seed=21)
+
+    checkpoint_path = str(tmp_path / "checkpoint.pt")
+    config1 = TrainConfig(num_epochs=2, dataset_dir=str(dataset_dir), checkpoint_path=checkpoint_path)
+    model1, _ = run_training(config1)
+
+    # resume from that checkpoint with 0 further epochs -- weights should match exactly
+    config2 = TrainConfig(num_epochs=0, dataset_dir=str(dataset_dir),
+                           checkpoint_path=checkpoint_path, resume_from=checkpoint_path)
+    model2, _ = run_training(config2)
+
+    for p1, p2 in zip(model1.parameters(), model2.parameters()):
+        assert torch.allclose(p1, p2)

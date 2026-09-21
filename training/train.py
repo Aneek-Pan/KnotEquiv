@@ -75,6 +75,11 @@ def run_training(config: TrainConfig):
         hidden_dim=config.hidden_dim,
         embedding_dim=config.embedding_dim,
     )
+
+    if config.resume_from:
+        model.load_state_dict(torch.load(config.resume_from))
+        print(f"Resumed from checkpoint: {config.resume_from}")
+        
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     loss_fn = nn.BCEWithLogitsLoss()
 
