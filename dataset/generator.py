@@ -69,3 +69,36 @@ def generate_dataset(
         'positive': num_positive,
         'negative': num_negative,
     }
+
+def generate_split_datasets(
+    total_examples: int,
+    output_dir: str,
+    train_frac: float = 0.7,
+    val_frac: float = 0.15,
+    # remaining goes to test
+    **generate_kwargs,
+) -> Dict[str, Dict[str, int]]:
+    """
+    Generate three separate datasets (train/validation/test) with
+    independent, non-overlapping random seeds, so no example can leak
+    across splits. Saves to {output_dir}/train.jsonl, etc.
+    """
+    import os
+    n_train = round(total_examples * train_frac)
+    n_val = round(total_examples * val_frac)
+    n_test = total_examples - n_train - n_val
+
+    base_seed = generate_kwargs.pop('seed', 0) or 0
+    os.makedirs(output_dir, exist_ok=True)
+
+    summaries = {}
+    summaries['train'] = generate_dataset(
+        n_train, f"{output_dir}/train.jsonl", seed=base_seed + 1, **generate_kwargs
+    )
+    summaries['validation'] = generate_dataset(
+        n_val, f"{output_dir}/validation.jsonl", seed=base_seed + 2, **generate_kwargs
+    )
+    summaries['test'] = generate_dataset(
+        n_test, f"{output_dir}/test.jsonl", seed=base_seed + 3, **generate_kwargs
+    )
+    return summaries
