@@ -92,4 +92,4 @@ def run_training(config: TrainConfig):
               f"val_loss={val_metrics['loss']:.4f} val_acc={val_metrics['accuracy']:.3f}")
 
     torch.save(model.state_dict(), config.checkpoint_path)
-    return model, history 
+    return model, history
