@@ -1,36 +1,26 @@
-from knot.seeds import figure_eight
+import snappy
+from knot.structure import Knot
+from knot.canonical import knots_equal
+from knot.seeds import SEEDS
 
-def canonical_gauss_form(seq, allow_mirror=False):
-    n = len(seq)
-    variants = []
+new_knots = {
+    '5_2': Knot.from_tokens([(1,'U','+'),(2,'O','+'),(5,'U','+'),(4,'O','+'),(3,'U','+'),(1,'O','+'),(2,'U','+'),(3,'O','+'),(4,'U','+'),(5,'O','+')]),
+    '6_1': Knot.from_tokens([(1,'U','-'),(6,'O','+'),(5,'U','+'),(4,'O','+'),(3,'U','+'),(1,'O','-'),(2,'U','-'),(3,'O','+'),(4,'U','+'),(5,'O','+'),(6,'U','+'),(2,'O','-')]),
+    '6_2': Knot.from_tokens([(1,'U','+'),(2,'O','+'),(3,'U','+'),(4,'O','+'),(5,'U','-'),(6,'O','-'),(4,'U','+'),(1,'O','+'),(2,'U','+'),(3,'O','+'),(6,'U','-'),(5,'O','-')]),
+    '6_3': Knot.from_tokens([(1,'U','-'),(5,'O','-'),(6,'U','-'),(1,'O','-'),(2,'U','+'),(3,'O','+'),(4,'U','+'),(2,'O','+'),(5,'U','-'),(6,'O','-'),(3,'U','+'),(4,'O','+')]),
+}
 
-    def relabel(s):
-        mapping, next_id, out = {}, 1, []
-        for label, ou, sign in s:
-            if label not in mapping:
-                mapping[label] = next_id
-                next_id += 1
-            out.append((mapping[label], ou, sign))
-        return out
+all_known = dict(SEEDS)
+print("Checking new knots against each other and existing seeds...\n")
+names = list(new_knots.keys())
+for i in range(len(names)):
+    for j in range(i+1, len(names)):
+        eq = knots_equal(new_knots[names[i]], new_knots[names[j]])
+        print(f"{names[i]} == {names[j]}: {eq}")
 
-    def flip_sign(s):
-        return [(l, ou, '+' if sign == '-' else '-') for l, ou, sign in s]
-
-    base_seqs = [seq, seq[::-1]]
-    if allow_mirror:
-        base_seqs += [flip_sign(s) for s in base_seqs]
-
-    for s in base_seqs:
-        for i in range(n):
-            rotated = s[i:] + s[:i]
-            variants.append(tuple(relabel(rotated)))
-
-    return min(variants)
-
-
-snappy_fig8 = [(1, 'U', '-'), (2, 'O', '-'), (3, 'U', '+'), (4, 'O', '+'),
-               (2, 'U', '-'), (1, 'O', '-'), (4, 'U', '+'), (3, 'O', '+')]
-our_fig8 = figure_eight().seq
-
-print("Same, no mirror allowed:", canonical_gauss_form(snappy_fig8) == canonical_gauss_form(our_fig8))
-print("Same, mirror allowed:   ", canonical_gauss_form(snappy_fig8, allow_mirror=True) == canonical_gauss_form(our_fig8, allow_mirror=True))
+for new_name, new_k in new_knots.items():
+    for seed_name, seed_fn in all_known.items():
+        eq = knots_equal(new_k, seed_fn())
+        if eq:
+            print(f"WARNING: {new_name} == existing seed {seed_name}!")
+print("\nDone. Any unflagged pair is confirmed distinct.")

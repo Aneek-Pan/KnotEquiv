@@ -1,5 +1,5 @@
 import pytest
-from knot.seeds import unknot, trefoil, figure_eight, cinquefoil, get_seed, SEEDS
+from knot.seeds import unknot, trefoil, figure_eight, cinquefoil, get_seed, five_two, six_one, six_two, six_three, SEEDS
 from knot.validator import passes_gauss_parity_check
 
 def test_unknot_has_zero_crossings():
@@ -31,4 +31,16 @@ def test_get_seed_returns_fresh_copy_each_time():
 
 def test_get_seed_unknown_name_raises():
     with pytest.raises(KeyError):
-        get_seed('not_a_real_knot')
+        get_seed('not_a_real_knot') 
+
+def test_three_two_has_five_crossings():
+    assert len(five_two()) == 10
+
+def test_six_one_has_six_crossings():
+    assert len(six_one()) == 12
+
+def test_six_two_has_six_crossings():
+    assert len(six_two()) == 12
+
+def test_six_three_has_six_crossings():
+    assert len(six_three()) == 12
