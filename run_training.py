@@ -1,8 +1,7 @@
 import time
 from dataset.generator import generate_split_datasets
-from training.train import run_training, load_examples, evaluate
+from training.train import run_training
 from training.config import TrainConfig
-import torch.nn as nn
 
 start = time.time()
 
