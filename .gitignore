@@ -1,4 +1,16 @@
+# Virtual environment
 venv/
+
+# Python cache
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Generated datasets (regenerable via dataset/generator.py)
+dataset/datasets/**/*.jsonl
+
+# Trained model checkpoints (regenerable via training/train.py)
+experiments/results/*.pt
+
+# Experiment logs
+experiments/logs/*
